@@ -97,6 +97,7 @@ class TestSpotImages:
     def test_list_images(self, client, spot):
         """
         Test getting images from a spot and returning them.
+        This test will add two images to the spot and then check that they are returned.
         """
         response = client.post(f"/spots/{spot.id}/images",
                                files={"file": open(self.test_image_dir / "test_spot.png", "rb")})
