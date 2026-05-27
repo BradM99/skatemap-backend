@@ -5,24 +5,10 @@ from config import settings
 
 
 class TestSpotEndpoints:
-    """
-    Test class for /spots API endpoints.
-    """
-
-    def test_get_spot_not_found(self, client):
-        """
-        Tests that checking for a spot that doesn't exist returns a 404 not found
-        """
-        bad_spot_id = uuid4()
-        response = client.get(f"/spots/{bad_spot_id}")
-
-        assert response.status_code == HTTPStatus.NOT_FOUND
+    """Test class for /spots API endpoints."""
 
     def test_create_spot(self, client):
-        """
-        Test the /spots POST endpoint.
-        Creates a valid spot, posts it to the endpoint, checks that all data fields are correct
-        """
+        """Tests creating a spot returns the correct data."""
         spot_data = {
             "name": "Test Spot",
             "description": "This is a test spot",
@@ -41,6 +27,7 @@ class TestSpotEndpoints:
         assert "id" in data
 
     def test_get_all_spots(self, client):
+        """Tests that a created spot appears in the list of all spots."""
         spot_data = {
             "name": "Test Spot",
             "description": "This is a test spot",
@@ -58,39 +45,37 @@ class TestSpotEndpoints:
         spot_ids = [s["id"] for s in data]
         assert created_id in spot_ids
 
+    def test_get_spot_not_found(self, client):
+        """Tests that a non-existent spot returns 404."""
+        response = client.get(f"/spots/{uuid4()}")
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+
 class TestSpotImages:
+    """Test class for /spots/{id}/images API endpoints."""
 
     test_image_dir = settings.BASE_DIR / "tests" / "test_images"
 
     def test_add_image(self, client, spot):
-        """
-        Test adding an image to a spot
-        """
-        response = client.post(f"/spots/{spot.id}/images",
-                               files={"file": open(self.test_image_dir / "test_spot.png", "rb")})
+        """Tests uploading an image to a spot."""
+        with open(self.test_image_dir / "test_spot.png", "rb") as f:
+            response = client.post(f"/spots/{spot.id}/images", files={"file": f})
         assert response.status_code == HTTPStatus.CREATED
-        data = response.json()
-        assert "id" in data
+        assert "id" in response.json()
 
-    def test_add_image_no_spot(self, client, spot):
-        """
-        Tests that adding an image to a spot that doesn't exist returns a 404 NOT FOUND
-        """
-        fake_id = uuid4()
-        response = client.post(f"/spots/{fake_id}/images",
-                               files={"file": open(self.test_image_dir / "test_spot.png", "rb")})
+    def test_add_image_no_spot(self, client):
+        """Tests that uploading to a non-existent spot returns 404."""
+        with open(self.test_image_dir / "test_spot.png", "rb") as f:
+            response = client.post(f"/spots/{uuid4()}/images", files={"file": f})
         assert response.status_code == HTTPStatus.NOT_FOUND
 
     def test_delete_image(self, client, spot, temp_upload_dir):
-        """
-        Test deleting an image removes the DB record and the file from disk.
-        """
-        post_response = client.post(f"/spots/{spot.id}/images",
-                                    files={"file": open(self.test_image_dir / "test_spot.png", "rb")})
+        """Tests deleting an image removes the DB record and file from disk."""
+        with open(self.test_image_dir / "test_spot.png", "rb") as f:
+            post_response = client.post(f"/spots/{spot.id}/images", files={"file": f})
         assert post_response.status_code == HTTPStatus.CREATED
 
-        image_data = post_response.json()
-        image_id = image_data["id"]
+        image_id = post_response.json()["id"]
         file_path = temp_upload_dir / str(spot.id) / "test_spot.png"
         assert file_path.exists()
 
@@ -99,29 +84,19 @@ class TestSpotImages:
         assert not file_path.exists()
 
     def test_list_images(self, client, spot):
-        """
-        Test getting images from a spot and returning them.
-        This test will add two images to the spot and then check that they are returned.
-        """
-        response = client.post(f"/spots/{spot.id}/images",
-                               files={"file": open(self.test_image_dir / "test_spot.png", "rb")})
+        """Tests that uploaded images are returned when listing a spot's images."""
+        with open(self.test_image_dir / "test_spot.png", "rb") as f:
+            response = client.post(f"/spots/{spot.id}/images", files={"file": f})
         assert response.status_code == HTTPStatus.CREATED
 
-        response = client.post(f"/spots/{spot.id}/images",
-                               files={"file": open(self.test_image_dir / "test_spot2.png", "rb")})
+        with open(self.test_image_dir / "test_spot2.png", "rb") as f:
+            response = client.post(f"/spots/{spot.id}/images", files={"file": f})
         assert response.status_code == HTTPStatus.CREATED
 
         response = client.get(f"/spots/{spot.id}/images")
         assert response.status_code == HTTPStatus.OK
         data = response.json()
         assert len(data) == 2
-        # Using temp directory so taking the dir straight from the db upload
-        filenames = {image["file_path"].replace("\\", "/").split("/")[-1] for image in data}
+        filenames = {img["file_path"].replace("\\", "/").split("/")[-1] for img in data}
         assert "test_spot.png" in filenames
         assert "test_spot2.png" in filenames
-
-    def test_update_image(self, client):
-        """
-        Test updating an image.
-        """
-        pass
