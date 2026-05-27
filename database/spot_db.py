@@ -13,7 +13,7 @@ def get_spot(db: Session, spot_id: UUID) -> Spot | None:
     """
     Gets a spot from the database via its spot id.
     """
-    return db.get(Spot, spot_id)
+    return get_or_404(db, Spot, spot_id)
 
 
 def get_all_spots(db: Session) -> Sequence[Spot]:
