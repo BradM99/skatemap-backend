@@ -1,4 +1,7 @@
-from database.models import Spot
+from starlette.exceptions import HTTPException
+
+import pytest
+
 from database.spot_db import get_spot, delete_spot, get_all_spots
 
 
@@ -24,7 +27,8 @@ class TestSpotDB:
         """
         assert get_spot(db, spot.id) is not None
         delete_spot(db, spot)
-        assert get_spot(db, spot.id) is None
+        with pytest.raises(HTTPException):
+            get_spot(db, spot.id)
 
     def test_get_spot_by_id(self, db, spot):
         """
