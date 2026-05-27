@@ -9,7 +9,7 @@ from database.models import Spot
 from database.utils import get_or_404
 
 
-def get_spot(db: Session, spot_id: UUID) -> Spot | None:
+def get_spot(db: Session, spot_id: UUID) -> Spot:
     """
     Gets a spot from the database via its spot id.
     """
@@ -42,12 +42,14 @@ def get_spots_by_bounding_box(
     Gets all spots within a specified boundary.
     Easily implemented on the frontend with map.getBounds() from Leaflet.js.
     """
-    return db.query(Spot).filter(
+    statement = select(Spot).filter(
         Spot.latitude >= min_lat,
         Spot.latitude <= max_lat,
         Spot.longitude >= min_lng,
         Spot.longitude <= max_lng,
-    ).all()
+    )
+
+    return db.execute(statement).scalars().all()
 
 
 def get_by_coords(db: Session, longitude: float, latitude: float) -> Spot | None:
