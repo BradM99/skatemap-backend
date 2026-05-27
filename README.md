@@ -8,8 +8,9 @@ SkateMap is a backend API for a web app that lets skateboarders discover and sha
 
 - Browse all skate spots
 - Add a spot with a name, description, and coordinates
-- Upload and delete images for a spot
+- Upload and delete images for a spot (deleting removes the file from disk)
 - Spot locations sourced from OpenStreetMap
+- Bounding box queries for loading spots visible on a map viewport
 
 ---
 
@@ -173,4 +174,4 @@ Full interactive documentation is available at `/docs` once the server is runnin
 | GET | `/spots/{id}` | Get a spot by ID |
 | GET | `/spots/{id}/images` | List images for a spot |
 | POST | `/spots/{id}/images` | Upload an image to a spot |
-| DELETE | `/spots/{id}/images/{image_id}` | Delete an image |
+| DELETE | `/spots/{id}/images/{image_id}` | Delete an image (also removes file from disk) |

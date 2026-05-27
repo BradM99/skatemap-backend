@@ -25,18 +25,18 @@ skatemap/
 ├── api/                 # HTTP layer
 │   ├── schemas.py       # Pydantic request and response models
 │   ├── spots.py         # /spots router and endpoint handlers
-│   └── auth.py          # /auth router (in progress)
+│   └── auth.py          # /auth router (stub — not yet implemented)
 │
 ├── core/                # Shared application utilities
-│   └── security.py      # Password hashing and JWT utilities (in progress)
+│   └── security.py      # Password hashing and JWT utilities (stub — not yet implemented)
 │
 ├── database/            # Data access layer
 │   ├── db.py            # Engine, session factory, declarative Base, get_db dependency
-│   ├── models.py        # SQLAlchemy ORM models
-│   ├── utils.py         # Shared query helpers
+│   ├── models.py        # SQLAlchemy ORM models (Spot, Image)
+│   ├── utils.py         # Shared query helpers (get_or_404)
 │   ├── spot_db.py       # Spot CRUD operations
 │   ├── images_db.py     # Image CRUD operations
-│   └── users_db.py      # User operations (in progress)
+│   └── users_db.py      # User operations (stub — not yet implemented)
 │
 ├── static/images/       # Uploaded spot images, organised by spot UUID
 │
@@ -65,7 +65,7 @@ graph TD
         ImagesDB[images_db.py]
         UsersDB[users_db.py]
         Utils[utils.py]
-        Models["models.py — Spot, Image, Users"]
+        Models["models.py — Spot, Image"]
     end
 
     subgraph Core
@@ -81,7 +81,7 @@ graph TD
     SpotDB & ImagesDB --> Utils
     SpotDB & ImagesDB & UsersDB --> Models
     Models -->|SQLAlchemy ORM| DB
-    Router -->|file upload| FileStore
+    Router -->|file upload / delete| FileStore
     Config -.-> Router & Models
     Security -.-> UsersDB
 ```
@@ -105,10 +105,10 @@ sequenceDiagram
     FastAPI->>FastAPI: open db session via get_db()
     FastAPI->>spots.py: get_spot(spot_id, db)
     spots.py->>spot_db.py: get_spot(db, spot_id)
+    spot_db.py->>spot_db.py: get_or_404(db, Spot, spot_id)
     spot_db.py->>PostgreSQL: SELECT * FROM spots WHERE id = ?
-    PostgreSQL-->>spot_db.py: row or None
-    spot_db.py-->>spots.py: Spot | None
-    spots.py->>spots.py: raise 404 if None
+    PostgreSQL-->>spot_db.py: row or 404
+    spot_db.py-->>spots.py: Spot
     spots.py-->>FastAPI: Spot ORM object
     FastAPI->>FastAPI: serialise to SpotRead
     FastAPI-->>Client: 200 JSON
@@ -161,4 +161,4 @@ All settings are defined in `config.py` as a Pydantic `Settings` class. Values a
 
 ## Image Storage
 
-Uploaded images are saved to `static/images/{spot_id}/{filename}` on the local filesystem. The path is stored in the `images` table. Deletion of the database record does not currently remove the file from disk.
+Uploaded images are saved to `static/images/{spot_id}/{filename}` on the local filesystem. The path is stored in the `images` table. Deleting an image via the API removes both the database record and the file from disk.
