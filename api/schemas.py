@@ -1,13 +1,7 @@
 from datetime import datetime
-from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from uuid import UUID
-
-class ApiResponse(BaseModel):
-    """Schema for API responses."""
-    message: str
-    data: Any
 
 
 class SpotBase(BaseModel):
