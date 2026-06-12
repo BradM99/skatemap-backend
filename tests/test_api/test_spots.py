@@ -50,6 +50,34 @@ class TestSpotEndpoints:
         response = client.get(f"/spots/{uuid4()}")
         assert response.status_code == HTTPStatus.NOT_FOUND
 
+    def test_update_spot(self, client):
+        """Tests that a spot can be updated."""
+        spot_data = {
+            "name": "Test Spot",
+            "description": "This is a test spot",
+            "latitude": 51.5074,
+            "longitude": -0.1278
+        }
+
+        response = client.post("/spots/", json=spot_data)
+        assert response.status_code == HTTPStatus.CREATED
+        created_id = response.json()["id"]
+
+        update_data = {"name": "New Name"}
+        response = client.put(f"/spots/{created_id}", json=update_data)
+        assert response.status_code == HTTPStatus.OK
+        data = response.json()
+        assert data["name"] == update_data["name"]
+
+    def test_delete_spot(self, client, spot):
+        """Tests that a spot can be deleted."""
+        response = client.delete(f"/spots/{spot.id}")
+        assert response.status_code == HTTPStatus.OK
+
+    def test_delete_spot_doesnt_exist(self, client):
+        """Tests that a non-existent spot returns 404."""
+        response = client.delete(f"/spots/{uuid4()}")
+        assert response.status_code == HTTPStatus.NOT_FOUND
 
 class TestSpotImages:
     """Test class for /spots/{id}/images API endpoints."""
