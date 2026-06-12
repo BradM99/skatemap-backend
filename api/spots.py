@@ -44,6 +44,12 @@ def get_spot(spot_id: UUID, db: Session = Depends(get_db)):
     """Gets a spot by ID. Returns 404 if not found."""
     return spot_db.get_spot(db, spot_id)
 
+@router.get("/search/bbox", response_model=list[SpotRead], status_code=HTTPStatus.OK)
+def get_spots_by_bounding_box(min_lat: float, max_lat: float, min_lng: float, max_lng: float,
+                              db: Session = Depends(get_db)):
+    """Gets spots within a bounding box."""
+    return spot_db.get_spots_by_bounding_box(db, min_lat, max_lat, min_lng, max_lng)
+
 
 @router.get("/{spot_id}/images", response_model=list[ImageRead], status_code=HTTPStatus.OK)
 def get_spot_images(spot_id: UUID, db: Session = Depends(get_db)):
