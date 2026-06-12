@@ -15,9 +15,9 @@ router = APIRouter(prefix="/spots", tags=["spots"])
 
 
 @router.get("/", response_model=list[SpotRead], status_code=HTTPStatus.OK)
-def get_all_spots(db: Session = Depends(get_db)):
+def get_all_spots(offset: int, limit: int, db: Session = Depends(get_db)):
     """Returns all spots in the database."""
-    return spot_db.get_all_spots(db)
+    return spot_db.get_spots_paginated(db, offset, limit)
 
 
 @router.post("/", response_model=SpotRead, status_code=HTTPStatus.CREATED)
