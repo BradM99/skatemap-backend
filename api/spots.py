@@ -3,10 +3,10 @@ from http import HTTPStatus
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
 
-from api.schemas import SpotCreate, SpotRead, ImageRead
+from api.schemas import SpotCreate, SpotRead, ImageRead, SpotUpdate
 from config import Settings
 from database import spot_db, images_db
 from database.db import get_db
@@ -24,6 +24,19 @@ def get_all_spots(db: Session = Depends(get_db)):
 def create_spot(spot: SpotCreate, db: Session = Depends(get_db)):
     """Creates a new spot."""
     return spot_db.create_spot(db, spot)
+
+@router.put("/{spot_id}", response_model=SpotRead, status_code=HTTPStatus.OK)
+def update_spot(spot_id: UUID, spot: SpotUpdate, db: Session = Depends(get_db)):
+    """Updates an existing spot by using spot ID, and spot update data."""
+    return spot_db.update_spot(db, spot_id, spot)
+
+@router.delete("/{spot_id}", status_code=HTTPStatus.OK)
+def delete_spot(spot_id: UUID, db: Session = Depends(get_db)):
+    """Deletes an existing spot by using spot ID."""
+    spot = spot_db.get_spot(db, spot_id)
+    if not spot:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Spot not found")
+    return spot_db.delete_spot(db, spot)
 
 
 @router.get("/{spot_id}", response_model=SpotRead, status_code=HTTPStatus.OK)
