@@ -1,7 +1,5 @@
-from uuid import uuid4
 from http import HTTPStatus
-
-import pytest
+from uuid import uuid4
 
 from config import settings, MAX_FILE_SIZE
 
