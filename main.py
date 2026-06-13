@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from config import settings
 
 from api import spots
+from database.db import create_db
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -13,6 +14,10 @@ app = FastAPI(
 )
 
 app.include_router(spots.router)
+
+@app.on_event("startup")
+def startup():
+    create_db()
 
 @app.get("/")
 def root():
