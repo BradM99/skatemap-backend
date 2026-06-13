@@ -8,6 +8,5 @@ RUN pip install --no-cache-dir -r requirements.txt \
 
 EXPOSE 8000
 
-# Default to running the FastAPI app
 ARG MODE=app
 CMD ["sh", "-c", "if [ \"$MODE\" = \"test\" ]; then pytest --maxfail=1 --disable-warnings -q; else uvicorn main:app --host 0.0.0.0 --port 8000; fi"]
