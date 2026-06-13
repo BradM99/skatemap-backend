@@ -11,6 +11,8 @@ from config import Settings
 from database import spot_db, images_db
 from database.db import get_db
 
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
 router = APIRouter(prefix="/spots", tags=["spots"])
 
 
@@ -60,6 +62,8 @@ def get_spot_images(spot_id: UUID, db: Session = Depends(get_db)):
 @router.post("/{spot_id}/images", response_model=ImageRead, status_code=HTTPStatus.CREATED)
 def upload_image(spot_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db)):
     """Uploads an image to a spot. Returns 404 if spot not found."""
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid file type.")
     save_dir = Settings.UPLOAD_DIR / str(spot_id)
     save_dir.mkdir(parents=True, exist_ok=True)
     file_path = save_dir / file.filename
