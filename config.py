@@ -4,7 +4,7 @@ from typing import ClassVar
 from pydantic import Field, PostgresDsn, computed_field
 from pydantic_settings import BaseSettings
 
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 5MB
 
 class Settings(BaseSettings):
     """Application configuration."""
