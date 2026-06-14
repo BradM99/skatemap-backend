@@ -141,25 +141,36 @@ pytest
 
 ---
 
-## Docker
+### Docker
 
-Build the image:
+Make sure Docker Desktop is running, then from the project root:
 
+**Start everything (app + database):**
 ```bash
-docker build -t skatemap .
+docker compose up -d
 ```
 
-Run the server:
-
+**Rebuild after code or dependency changes:**
 ```bash
-docker run -p 8000:8000 skatemap
+docker compose up -d --build
 ```
 
-Run the tests inside the container:
-
+**Run the tests:**
 ```bash
-docker run skatemap pytest
+docker compose run --rm -e MODE=test app
 ```
+
+**View logs:**
+```bash
+docker compose logs app
+```
+
+**Stop everything:**
+```bash
+docker compose down
+```
+
+The database and test database are created automatically on first run. Tables are created on app startup via SQLAlchemy's `create_all`.
 
 ---
 
