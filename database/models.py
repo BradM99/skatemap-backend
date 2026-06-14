@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-import pytz
 from sqlalchemy import String, Float, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -38,8 +37,12 @@ class Spot(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    creator: Mapped["User"] = relationship("User", back_populates="spots")
+    created_by: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
 
-    images: Mapped[List["Image"]] = relationship("Image", cascade="all, delete-orphan")
+    images: Mapped[List["Image"]] = relationship("Image", cascade="all, delete-orphan", back_populates="spot")
 
 class Image(Base):
     __tablename__ = "images"
@@ -50,11 +53,9 @@ class Image(Base):
     spot_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("spots.id"), nullable=False
     )
-    file_path: Mapped[str] = mapped_column(
-        str(200), nullable=False
-    )
+    file_path: Mapped[str] = mapped_column(String(200), nullable=False)
     uploaded_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(pytz.timezone('Europe/London'))
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     spot: Mapped["Spot"] = relationship("Spot", back_populates="images")
 
@@ -67,3 +68,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    spots: Mapped[list["Spot"]] = relationship("Spot", back_populates="creator")
