@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from config import settings
 from database.db import create_db
-from api import spots
+from api import spots, auth
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +21,7 @@ app = FastAPI(
 )
 
 app.include_router(spots.router)
+app.include_router(auth.router)
 
 @app.get("/")
 def root():
