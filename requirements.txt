@@ -9,3 +9,5 @@ starlette
 httpx
 python-multipart
 pydantic-settings
+python-jose
+passlib
