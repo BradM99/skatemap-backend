@@ -35,11 +35,17 @@ class UserRegister(BaseModel):
             raise ValueError("Password must contain at least one symbol")
         return value
 
+class UserLogin(BaseModel):
+    """Schema for logging in a user."""
+    email: str
+    password: str
+
 class UserRead(BaseModel):
     """Schema for returning a user from the API, includes database generated fields."""
     id: UUID
     username: str
     email: str
     created_at: datetime
+
 
     model_config = ConfigDict(from_attributes=True)
