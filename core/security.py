@@ -1,12 +1,15 @@
+from datetime import datetime, timezone, timedelta
 from http import HTTPStatus
 
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
 from starlette.exceptions import HTTPException
 
+from config import settings
+
 handler = PasswordHash.recommended()
 
-SECRET_KEY = "secret_key"
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 
 
@@ -19,7 +22,9 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict) -> str:
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    payload = data.copy()
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=settings.TOKEN_EXPIRE_MINUTES)
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_access_token(token: str) -> dict:
