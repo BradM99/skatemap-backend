@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from api.schemas.users import UserRead, UserRegister
+from api.schemas.users import UserRead, UserRegister, UserLogin
 from core import security
 from core.security import verify_password, create_access_token
 from database import users_db
@@ -26,7 +26,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     return users_db.create_user(db, user.username, user.email, hashed_password)
 
 @router.post("/login", status_code=HTTPStatus.OK)
-def login(user: UserRegister, db: Session = Depends(get_db)):
+def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = users_db.get_user_by_email(db, user.email)
     if not db_user or not verify_password(db_user.hashed_password, user.password):
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Invalid username or password")
