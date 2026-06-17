@@ -80,4 +80,19 @@ class TestRegistration:
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
+    def test_login(self, client: TestClient):
+        registration_info = {
+            "username": "CoolPerson53",
+            "email": "validemail@validemail.com",
+            "password": "ThisisavalidPassword123!"
+        }
+        response = client.post("/auth/register", json=registration_info)
+
+        assert response.status_code == HTTPStatus.CREATED
+
+        response = client.post("/auth/login", json=registration_info)
+        assert response.status_code == HTTPStatus.OK
+        assert "access_token" in response.json()
+        assert "token_type" in response.json()
+
 
