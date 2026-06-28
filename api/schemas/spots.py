@@ -14,7 +14,7 @@ class SpotBase(BaseModel):
 
 class SpotCreate(SpotBase):
     """Schema for creating a new spot. Inherits all fields from SpotBase."""
-    created_by: UUID
+    pass
 
 
 class SpotUpdate(BaseModel):
