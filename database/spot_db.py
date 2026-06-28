@@ -63,11 +63,11 @@ def get_by_coords(db: Session, longitude: float, latitude: float) -> Spot | None
     return db.execute(statement).scalar_one_or_none()
 
 
-def create_spot(db: Session, data: SpotCreate) -> Spot:
+def create_spot(db: Session, data: SpotCreate, created_by: UUID) -> Spot:
     """
     Creates a spot and adds it to the database, returns the spot object.
     """
-    spot = Spot(**data.model_dump())
+    spot = Spot(**data.model_dump(), created_by=created_by)
     db.add(spot)
     db.commit()
     db.refresh(spot)
