@@ -1,8 +1,11 @@
+from http import HTTPStatus
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 from starlette import status
 from starlette.exceptions import HTTPException
+
+from database.models import Spot
 
 
 def get_or_404(db: Session, model, object_id: UUID):
@@ -16,3 +19,13 @@ def get_or_404(db: Session, model, object_id: UUID):
             detail=f"{model.__name__} not found"
         )
     return obj
+
+def verify_spot_owner(db: Session, spot_id: UUID, user_id: UUID) -> Spot:
+    """
+    Gets a spot by ID and verifies the given user owns it.
+    Returns the spot if ownership checks out, raises 404/403 otherwise.
+    """
+    spot = get_or_404(db, Spot, spot_id)
+    if spot.created_by != user_id:
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Not authorised to modify this spot")
+    return spot
