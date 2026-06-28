@@ -65,13 +65,14 @@ def client(setup_database):
 
 
 @pytest.fixture
-def spot(db):
+def spot(db, user):
     """Create and return a test spot in the database."""
     spot = Spot(
         name="Test Spot",
         description="Fixture test spot",
         latitude=51.5074,
         longitude=-0.1278,
+        created_by=user.id,
     )
     db.add(spot)
     db.commit()
