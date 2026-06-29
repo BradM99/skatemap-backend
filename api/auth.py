@@ -9,6 +9,7 @@ from core import security
 from core.security import verify_password, create_access_token, decode_access_token
 from database import users_db
 from database.db import get_db
+from database.models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -34,7 +35,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     token = create_access_token({"sub": str(db_user.id)})
     return {"access_token": token, "token_type": "bearer"}
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> UserRead:
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     payload = decode_access_token(token)
     user_id = payload.get("sub")
     if not user_id:
@@ -45,4 +46,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="User not found")
 
     return user
+
+@router.get("/me", response_model=UserRead, status_code=HTTPStatus.OK)
+def get_me(current_user: User = Depends(get_current_user)):
+    """Returns the currently authenticated user."""
+    return current_user
 
