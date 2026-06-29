@@ -7,6 +7,7 @@ from sqlalchemy.pool import NullPool
 from config import Settings, settings
 from database.db import Base, get_db
 from database.models import Spot, User
+from database import users_db
 from main import app
 
 TEST_DATABASE_URL = (
@@ -63,22 +64,6 @@ def client(setup_database):
     with TestClient(app) as c:
         yield c
 
-
-@pytest.fixture
-def spot(db, user):
-    """Create and return a test spot in the database."""
-    spot = Spot(
-        name="Test Spot",
-        description="Fixture test spot",
-        latitude=51.5074,
-        longitude=-0.1278,
-        created_by=user.id,
-    )
-    db.add(spot)
-    db.commit()
-    db.refresh(spot)
-    return spot
-
 @pytest.fixture
 def user(db):
     """Create and return a test user in the database."""
@@ -106,3 +91,54 @@ def multiple_users(db):
     db.add_all(users)
     db.commit()
     return users
+
+@pytest.fixture
+def auth_headers(client, db):
+    """Registers and logs in a test user, returns headers with a valid bearer token."""
+    client.post("/auth/register", json={
+        "username": "TestUser1",
+        "email": "testuser1@example.com",
+        "password": "ThisisavalidPassword123!"
+    })
+    login_response = client.post("/auth/login", json={
+        "email": "testuser1@example.com",
+        "password": "ThisisavalidPassword123!"
+    })
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def spot(db, auth_headers, client):
+    """Create and return a test spot owned by the auth_headers test user."""
+    user = users_db.get_user_by_email(db, "testuser1@example.com")
+
+    spot = Spot(
+        name="Test Spot",
+        description="Fixture test spot",
+        latitude=51.5074,
+        longitude=-0.1278,
+        created_by=user.id,
+    )
+    db.add(spot)
+    db.commit()
+    db.refresh(spot)
+    return spot
+
+@pytest.fixture
+def spots(client, auth_headers):
+    """Creates 3 test spots via the API with slightly varied lat/lng, returns the list of created spot dicts."""
+    base_lat, base_lng = 51.5074, -0.1278
+    created_spots = []
+
+    for i in range(3):
+        spot_data = {
+            "name": f"Test Spot {i}",
+            "description": f"Fixture test spot {i}",
+            "latitude": base_lat + (i * 0.01),
+            "longitude": base_lng + (i * 0.01),
+        }
+        response = client.post("/spots/", json=spot_data, headers=auth_headers)
+        created_spots.append(response.json())
+
+    return created_spots
